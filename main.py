@@ -242,6 +242,7 @@ with dai.Device(pipeline) as device:
                             ):
                                 counter[1] += 1
                                 to.counted = True
+                                print("Someone entered the CTH")
                             elif (
                                 centroid[0] < args.roi_position * width
                                 and direction < 0
@@ -249,6 +250,7 @@ with dai.Device(pipeline) as device:
                             ):
                                 counter[0] += 1
                                 to.counted = True
+                                print("Someone left the CTH")
 
                         elif not args.axis and not to.counted:
                             y = [c[1] for c in to.centroids]
