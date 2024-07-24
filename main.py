@@ -15,7 +15,7 @@ parser.add_argument('-roi', '--roi_position', type=float,
                     default=0.5, help='ROI Position (0-1)')
 parser.add_argument('-a', '--axis', default=True, action='store_false',
                     help='Axis for cumulative counting (default=x axis)')
-parser.add_argument('-sh', '--show', default=True,
+parser.add_argument('-sh', '--show', default=False,
                     action='store_false', help='Show output')
 parser.add_argument('-sp', '--save_path', type=str, default='',
                     help='Path to save the output. If None output won\'t be saved')
