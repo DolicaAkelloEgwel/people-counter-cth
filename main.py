@@ -105,7 +105,7 @@ trackerOut.setStreamName("tracklets")
 objectTracker.out.link(trackerOut.input)
 
 
-def log_movement(move, log_file="people_count.csv"):
+def log_movement(move, log_file="/home/dolica/people-counter-cth/people_count.csv"):
     with open(log_file, mode="a", newline="") as movement_file:
         writer = csv.writer(movement_file)
         writer.writerow([datetime.now().isoformat(), move])
