@@ -4,6 +4,8 @@ import argparse
 import numpy as np
 import time
 import depthai as dai
+import csv
+from datetime import datetime
 
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -101,6 +103,12 @@ nn.out.link(objectTracker.inputDetections)
 trackerOut = pipeline.create(dai.node.XLinkOut)
 trackerOut.setStreamName("tracklets")
 objectTracker.out.link(trackerOut.input)
+
+
+def log_movement(move, log_file="people_count.csv"):
+    with open(log_file, mode="a", newline="") as movement_file:
+        writer = csv.writer(movement_file)
+        writer.writerow([datetime.now().isoformat(), move])
 
 
 # from https://www.pyimagesearch.com/2018/08/13/opencv-people-counter/
@@ -243,6 +251,7 @@ with dai.Device(pipeline) as device:
                                 counter[1] += 1
                                 to.counted = True
                                 print("Someone entered the CTH")
+                                log_movement("IN")
                             elif (
                                 centroid[0] < args.roi_position * width
                                 and direction < 0
@@ -251,6 +260,7 @@ with dai.Device(pipeline) as device:
                                 counter[0] += 1
                                 to.counted = True
                                 print("Someone left the CTH")
+                                log_movement("OUT")
 
                         elif not args.axis and not to.counted:
                             y = [c[1] for c in to.centroids]
