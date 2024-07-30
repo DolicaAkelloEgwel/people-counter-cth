@@ -6,10 +6,6 @@ import time
 import depthai as dai
 import csv
 from datetime import datetime
-import requests
-
-in_count = 0
-url = "http://192.168.0.100:8000/count"
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument("-m", "--model", type=str, help="File path of .blob file.")
@@ -255,10 +251,6 @@ with dai.Device(pipeline) as device:
                                 to.counted = True
                                 print("Someone entered the CTH")
                                 log_movement("IN")
-                                in_count += 1
-                                data = {"value": in_count}
-                                response = requests.post(url, json=data)
-                                print(response.text)
                             elif (
                                 centroid[0] < args.roi_position * width
                                 and direction < 0
