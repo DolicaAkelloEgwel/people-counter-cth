@@ -7,7 +7,7 @@ import adafruit_requests
 from adafruit_esp32spi import adafruit_esp32spi
 import time
 import adafruit_esp32spi_socketpool as socketpool
-from adafruit_display_text import scrolling_label
+from adafruit_display_text import label
 import terminalio
 import displayio
 import rgbmatrix
@@ -32,6 +32,31 @@ matrix = rgbmatrix.RGBMatrix(
     output_enable_pin=board.MTX_OE,
 )
 display = framebufferio.FramebufferDisplay(matrix, auto_refresh=True)
+
+text = "CTH Daily"
+top_label = label.Label(terminalio.FONT, text=text)
+top_label.x = 5
+top_label.y = 6
+
+second_label = label.Label(terminalio.FONT, text="Entry")
+second_label.x = 5
+second_label.y = 15
+
+third_label = label.Label(terminalio.FONT, text="Count")
+third_label.x = 5
+third_label.y = 26
+
+count_label = label.Label(terminalio.FONT, text=" ?", scale=2)
+count_label.x = 37
+count_label.y = 22
+
+
+g = displayio.Group()
+g.append(top_label)
+g.append(second_label)
+g.append(third_label)
+g.append(count_label)
+display.root_group = g
 
 # Get wifi details and more from a settings.toml file
 # tokens used by this Demo: CIRCUITPY_WIFI_SSID, CIRCUITPY_WIFI_PASSWORD
@@ -84,29 +109,28 @@ print("My IP address is", esp.pretty_ip(esp.ip_address))
 # Define the URL of the server you want to connect to
 url = "http://192.168.0.100:8000/count"
 
-text = "Hello world CircuitPython scrolling label"
-my_scrolling_label = scrolling_label.ScrollingLabel(
-    terminalio.FONT, text=text, max_characters=25, animate_time=0.3
-)
-my_scrolling_label.x = 0
-my_scrolling_label.y = 15
-display.root_group = my_scrolling_label
+polling_interval = 30
+last_request_time = 0
+
+
+def retrieve_visitor_count():
+    print("Polling...")
+    try:
+        with requests.get(url) as response:
+            if response.status_code == 200:
+                data = response.json()
+                return str(data["value"])
+            else:
+                print(
+                    "Failed to fetch integer value: {response.status_code} - {response.reason}"
+                )
+                return "??"
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return "??"
+
 
 while True:
 
-    if time.time() % 30 == 0:
-        try:
-            with requests.get(url) as response:
-                if response.status_code == 200:
-                    data = response.json()
-                    value = data["value"]
-                    print(f"Integer value received from server: {value}")
-                    my_scrolling_label.text = (
-                        f"The CTH was entered {value} times today."
-                    )
-                else:
-                    my_scrolling_label.text = f"Failed to fetch integer value: {response.status_code} - {response.reason}"
-        except Exception as e:
-            my_scrolling_label.text = f"An error occurred: {e}"
-
-    my_scrolling_label.update()
+    count_label.text = retrieve_visitor_count()
+    time.sleep(30)
