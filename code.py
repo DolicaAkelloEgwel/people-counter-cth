@@ -33,8 +33,7 @@ matrix = rgbmatrix.RGBMatrix(
 )
 display = framebufferio.FramebufferDisplay(matrix, auto_refresh=True)
 
-text = "CTH Daily"
-top_label = label.Label(terminalio.FONT, text=text)
+top_label = label.Label(terminalio.FONT, text="CTH Daily")
 top_label.x = 5
 top_label.y = 6
 
@@ -110,7 +109,6 @@ print("My IP address is", esp.pretty_ip(esp.ip_address))
 url = "http://192.168.0.100:8000/count"
 
 polling_interval = 30
-last_request_time = 0
 
 
 def retrieve_visitor_count():
