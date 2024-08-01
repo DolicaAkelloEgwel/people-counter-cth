@@ -1,20 +1,21 @@
+import gc
+import time
 from os import getenv
+
+import adafruit_connection_manager
+import adafruit_esp32spi_socketpool as socketpool
+import adafruit_logging
+import adafruit_requests
 import board
 import busio
-from digitalio import DigitalInOut
-import adafruit_connection_manager
-import adafruit_requests
-from adafruit_esp32spi import adafruit_esp32spi
-import time
-import adafruit_esp32spi_socketpool as socketpool
-from adafruit_display_text import label
-import terminalio
 import displayio
-import rgbmatrix
 import framebufferio
-import gc
 import microcontroller
-import adafruit_logging
+import rgbmatrix
+import terminalio
+from adafruit_display_text import label
+from adafruit_esp32spi import adafruit_esp32spi
+from digitalio import DigitalInOut
 
 logger = adafruit_logging.Logger("Logger")
 logger.setLevel(adafruit_logging.INFO)

@@ -1,11 +1,12 @@
+import argparse
+import csv
+import time
+from datetime import datetime
+
 import blobconverter
 import cv2
-import argparse
-import numpy as np
-import time
 import depthai as dai
-import csv
-from datetime import datetime
+import numpy as np
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument("-m", "--model", type=str, help="File path of .blob file.")
