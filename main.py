@@ -46,7 +46,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 if args.model is None:
-    args.model = blobconverter.from_zoo(name="mobilenet-ssd", shaves=7)
+    args.model = blobconverter.from_zoo(name="mobilenet-ssd", shaves=6)
 
 # Create pipeline
 pipeline = dai.Pipeline()
@@ -249,7 +249,7 @@ with dai.Device(pipeline) as device:
                             ):
                                 counter[1] += 1
                                 to.counted = True
-                                print("Someone entered the CTH")
+                                print("Someone entered the CTH", flush=True)
                                 log_movement("IN")
                             elif (
                                 centroid[0] < args.roi_position * width
@@ -258,7 +258,7 @@ with dai.Device(pipeline) as device:
                             ):
                                 counter[0] += 1
                                 to.counted = True
-                                print("Someone left the CTH")
+                                print("Someone left the CTH", flush=True)
                                 log_movement("OUT")
 
                         elif not args.axis and not to.counted:
