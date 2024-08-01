@@ -3,7 +3,6 @@ import time
 from os import getenv
 
 import adafruit_connection_manager
-import adafruit_esp32spi_socketpool as socketpool
 import adafruit_logging
 import adafruit_requests
 import board
