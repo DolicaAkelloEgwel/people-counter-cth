@@ -109,14 +109,13 @@ objectTracker.out.link(trackerOut.input)
 
 
 def log_movement(move):
-    if not os.path.isdir(DATA_PATH):
-        os.mkdir(DATA_PATH)
-    data_file_name = datetime.now().strftime("%Y-%m-%d") + ".csv"
+    date_now = datetime.now()
+    data_file_name = date_now.strftime("%Y-%m-%d") + ".csv"
     with open(
         os.path.join(DATA_PATH, data_file_name), mode="a", newline=""
     ) as movement_file:
         writer = csv.writer(movement_file)
-        writer.writerow([datetime.now().isoformat(), move])
+        writer.writerow([date_now.isoformat(), move])
 
 
 # from https://www.pyimagesearch.com/2018/08/13/opencv-people-counter/
