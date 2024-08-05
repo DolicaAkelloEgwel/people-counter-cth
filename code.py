@@ -3,6 +3,7 @@ import time
 from os import getenv
 
 import adafruit_connection_manager
+import adafruit_esp32spi_socketpool as socketpool
 import adafruit_logging
 import adafruit_requests
 import board
@@ -125,28 +126,28 @@ FAILURE_LIMIT = 5
 
 def retrieve_visitor_count():
     print("Polling...")
-    try:
-        with requests.get(url) as response:
-            if response.status_code == 200:
-                data = response.json()
-                FAILURE_COUNT = 0
-                return str(data["value"])
-            else:
-                msg = "Failed to fetch integer value: {response.status_code} - {response.reason}"
-                print(msg)
-                logger.error(msg)
-                return "Er"
-    except Exception as e:
-        FAILURE_COUNT += 1
-        print(f"An error occurred: {e}")
-        logger.exception(e)
-        return "Ex"
+    with requests.get(url) as response:
+        if response.status_code == 200:
+            data = response.json()
+            FAILURE_COUNT = 0
+            return "%02d" % data["value"]
+        else:
+            msg = "Failed to fetch integer value: {response.status_code} - {response.reason}"
+            print(msg)
+            logger.error(msg)
+            return "Er"
 
 
 while True:
 
-    count_label.text = retrieve_visitor_count()
-    gc.collect()
+    try:
+        count_label.text = retrieve_visitor_count()
+    except Exception as e:
+        gc.collect()
+        FAILURE_COUNT += 1
+        print(f"An error occurred: {e}")
+        logger.exception(e)
+        count_label.text = "Ex"
 
     if FAILURE_COUNT == 5:
         top_label.text = "Resetting!"
