@@ -17,12 +17,15 @@ from adafruit_display_text import label
 from adafruit_esp32spi import adafruit_esp32spi
 from digitalio import DigitalInOut
 
+# Create a logger
 logger = adafruit_logging.Logger("Logger")
 logger.setLevel(adafruit_logging.INFO)
 
+# Set up a log file - this requires device to be in write mode
 file_handler = adafruit_logging.FileHandler("./people-counter-display.log")
 logger.addHandler(file_handler)
 
+# Initialise display
 displayio.release_displays()
 matrix = rgbmatrix.RGBMatrix(
     width=64,
@@ -43,6 +46,7 @@ matrix = rgbmatrix.RGBMatrix(
 )
 display = framebufferio.FramebufferDisplay(matrix, auto_refresh=True)
 
+# Prepare initial text for the display
 top_label = label.Label(terminalio.FONT, text="CTH Daily")
 top_label.x = 5
 top_label.y = 6
@@ -55,11 +59,12 @@ third_label = label.Label(terminalio.FONT, text="Count")
 third_label.x = 5
 third_label.y = 26
 
+# Question mark for count because we haven't connected to the wifi yet
 count_label = label.Label(terminalio.FONT, text=" ?", scale=2)
 count_label.x = 37
 count_label.y = 22
 
-
+# Put the text in a group and put group in display
 g = displayio.Group()
 g.append(top_label)
 g.append(second_label)
@@ -119,7 +124,10 @@ print("My IP address is", esp.pretty_ip(esp.ip_address))
 # Define the URL of the server you want to connect to
 url = "http://192.168.0.100:8000/count"
 
+# Check for changes in entry count every 30 seconds
 polling_interval = 30
+
+# Use a counter to see if requests.get causes an exception 5 times in a row
 FAILURE_COUNT = 0
 FAILURE_LIMIT = 5
 
@@ -129,7 +137,6 @@ def retrieve_visitor_count():
     with requests.get(url) as response:
         if response.status_code == 200:
             data = response.json()
-            FAILURE_COUNT = 0
             return "%02d" % data["value"]
         else:
             msg = "Failed to fetch integer value: {response.status_code} - {response.reason}"
@@ -142,16 +149,22 @@ while True:
 
     try:
         count_label.text = retrieve_visitor_count()
+        FAILURE_COUNT = 0  # no exception so reset failure count
     except Exception as e:
+        # force gargage collection in case memory is the culprit
         gc.collect()
+        # increase failure count
         FAILURE_COUNT += 1
         print(f"An error occurred: {e}")
+        # log the exception
         logger.exception(e)
+        # put a message on the display
         count_label.text = "Ex"
 
     if FAILURE_COUNT == 5:
         top_label.text = "Resetting!"
         second_label.text = third_label.text = count_label.text = ""
+        # leave the resetting message on the display for a bit so we can see that this has happened
         time.sleep(5)
         logger.critical("Reset due to multiple failures")
         microcontroller.reset()
