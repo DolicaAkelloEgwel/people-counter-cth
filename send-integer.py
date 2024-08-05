@@ -11,8 +11,7 @@ DATA_PATH = "/home/dolica/people-counter-cth/data"
 @app.route("/count", methods=["GET"])
 def count():
     in_count = 0
-    today = datetime.today().strftime("%Y-%m-%d")
-    data_file_name = today + ".csv"
+    data_file_name = datetime.today().strftime("%Y-%m-%d") + ".csv"
     with open(os.path.join(DATA_PATH, data_file_name), "r") as count_file:
         for line in count_file:
             if "IN" in line:
