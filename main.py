@@ -1,11 +1,15 @@
+import argparse
+import csv
+import os
+import time
+from datetime import datetime
+
 import blobconverter
 import cv2
-import argparse
-import numpy as np
-import time
 import depthai as dai
-import csv
-from datetime import datetime
+import numpy as np
+
+DATA_PATH = "/home/dolica/people-counter-cth/data"
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument("-m", "--model", type=str, help="File path of .blob file.")
@@ -104,8 +108,13 @@ trackerOut.setStreamName("tracklets")
 objectTracker.out.link(trackerOut.input)
 
 
-def log_movement(move, log_file="/home/dolica/people-counter-cth/people_count.csv"):
-    with open(log_file, mode="a", newline="") as movement_file:
+def log_movement(move):
+    if not os.path.isdir(DATA_PATH):
+        os.mkdir(DATA_PATH)
+    data_file_name = datetime.now().strftime("%Y-%m-%d") + ".csv"
+    with open(
+        os.path.join(DATA_PATH, data_file_name), mode="a", newline=""
+    ) as movement_file:
         writer = csv.writer(movement_file)
         writer.writerow([datetime.now().isoformat(), move])
 
