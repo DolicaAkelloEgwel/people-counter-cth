@@ -1,17 +1,26 @@
+import gc
+import time
 from os import getenv
+
+import adafruit_connection_manager
+import adafruit_logging
+import adafruit_requests
 import board
 import busio
-from digitalio import DigitalInOut
-import adafruit_connection_manager
-import adafruit_requests
-from adafruit_esp32spi import adafruit_esp32spi
-import time
-import adafruit_esp32spi_socketpool as socketpool
-from adafruit_display_text import label
-import terminalio
 import displayio
-import rgbmatrix
 import framebufferio
+import microcontroller
+import rgbmatrix
+import terminalio
+from adafruit_display_text import label
+from adafruit_esp32spi import adafruit_esp32spi
+from digitalio import DigitalInOut
+
+logger = adafruit_logging.Logger("Logger")
+logger.setLevel(adafruit_logging.INFO)
+
+file_handler = adafruit_logging.FileHandler("./people-counter-display.log")
+logger.addHandler(file_handler)
 
 displayio.release_displays()
 matrix = rgbmatrix.RGBMatrix(
@@ -100,6 +109,7 @@ while not esp.is_connected:
     try:
         esp.connect_AP(secrets["ssid"], secrets["password"])
     except OSError as e:
+        logger.error(str(e))
         print("could not connect to AP, retrying: ", e)
         continue
 print("Connected to", str(esp.ssid, "utf-8"), "\tRSSI:", esp.rssi)
@@ -109,6 +119,8 @@ print("My IP address is", esp.pretty_ip(esp.ip_address))
 url = "http://192.168.0.100:8000/count"
 
 polling_interval = 30
+FAILURE_COUNT = 0
+FAILURE_LIMIT = 5
 
 
 def retrieve_visitor_count():
@@ -117,18 +129,30 @@ def retrieve_visitor_count():
         with requests.get(url) as response:
             if response.status_code == 200:
                 data = response.json()
+                FAILURE_COUNT = 0
                 return str(data["value"])
             else:
-                print(
-                    "Failed to fetch integer value: {response.status_code} - {response.reason}"
-                )
-                return "??"
+                msg = "Failed to fetch integer value: {response.status_code} - {response.reason}"
+                print(msg)
+                logger.error(msg)
+                return "Er"
     except Exception as e:
+        FAILURE_COUNT += 1
         print(f"An error occurred: {e}")
-        return "??"
+        logger.exception(e)
+        return "Ex"
 
 
 while True:
 
     count_label.text = retrieve_visitor_count()
+    gc.collect()
+
+    if FAILURE_COUNT == 5:
+        top_label.text = "Resetting!"
+        second_label.text = third_label.text = count_label.text = ""
+        time.sleep(5)
+        logger.critical("Reset due to multiple failures")
+        microcontroller.reset()
+
     time.sleep(30)
