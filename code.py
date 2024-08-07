@@ -160,7 +160,7 @@ while True:
     finally:
         response.close()
 
-    if FAILURE_COUNT == 5:
+    if FAILURE_COUNT == FAILURE_LIMIT:
         top_label.text = "Resetting!"
         second_label.text = third_label.text = count_label.text = ""
         # leave the resetting message on the display for a bit so we can see that this has happened
