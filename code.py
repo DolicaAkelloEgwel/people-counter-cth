@@ -17,13 +17,16 @@ from adafruit_display_text import label
 from adafruit_esp32spi import adafruit_esp32spi
 from digitalio import DigitalInOut
 
+SAVE_LOG_FILE = False
+
 # Create a logger
 logger = adafruit_logging.Logger("Logger")
 logger.setLevel(adafruit_logging.INFO)
 
 # Set up a log file - this requires device to be in write mode
-file_handler = adafruit_logging.FileHandler("./people-counter-display.log")
-logger.addHandler(file_handler)
+if SAVE_LOG_FILE:
+    file_handler = adafruit_logging.FileHandler("./people-counter-display.log")
+    logger.addHandler(file_handler)
 
 # Initialise display
 displayio.release_displays()
@@ -125,34 +128,28 @@ print("My IP address is", esp.pretty_ip(esp.ip_address))
 url = "http://192.168.0.100:8000/count"
 
 # Check for changes in entry count every 30 seconds
-polling_interval = 30
+POLLING_INTERVAL = 30
 
 # Use a counter to see if requests.get causes an exception 5 times in a row
 FAILURE_COUNT = 0
 FAILURE_LIMIT = 5
 
+while True:
 
-def retrieve_visitor_count():
-    print("Polling...")
-    with requests.get(url) as response:
+    gc.collect()
+    print("Free memory:", gc.mem_free())
+
+    try:
+        response = requests.get(url)
         if response.status_code == 200:
-            data = response.json()
-            return "%02d" % data["value"]
+            count_label.text = "%02d" % response.json()["value"]
         else:
             msg = "Failed to fetch integer value: {response.status_code} - {response.reason}"
             print(msg)
             logger.error(msg)
-            return "Er"
-
-
-while True:
-
-    try:
-        count_label.text = retrieve_visitor_count()
-        FAILURE_COUNT = 0  # no exception so reset failure count
+            count_label.text = "Er"
+        FAILURE_COUNT = 0
     except Exception as e:
-        # force gargage collection in case memory is the culprit
-        gc.collect()
         # increase failure count
         FAILURE_COUNT += 1
         print(f"An error occurred: {e}")
@@ -160,6 +157,8 @@ while True:
         logger.exception(e)
         # put a message on the display
         count_label.text = "Ex"
+    finally:
+        response.close()
 
     if FAILURE_COUNT == 5:
         top_label.text = "Resetting!"
@@ -169,4 +168,4 @@ while True:
         logger.critical("Reset due to multiple failures")
         microcontroller.reset()
 
-    time.sleep(30)
+    time.sleep(POLLING_INTERVAL)
