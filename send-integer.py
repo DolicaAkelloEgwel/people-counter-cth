@@ -12,11 +12,15 @@ DATA_PATH = "/home/dolica/people-counter-cth/data"
 def count():
     in_count = 0
     data_file_name = datetime.today().strftime("%Y-%m-%d") + ".csv"
-    with open(os.path.join(DATA_PATH, data_file_name), "r") as count_file:
-        for line in count_file:
-            if "IN" in line:
-                in_count += 1
-    return jsonify({"value": in_count})
+    try:
+        with open(os.path.join(DATA_PATH, data_file_name), "r") as count_file:
+            for line in count_file:
+                if "IN" in line:
+                    in_count += 1
+        return jsonify({"value": in_count})
+    except FileNotFoundError:
+        # value is 0 if the file doesn't exist yet - this can happen when the nvidia device has been turned off
+        return jsonify({"value": 0})
 
 
 if __name__ == "__main__":
